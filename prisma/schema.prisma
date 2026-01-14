@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum WorkoutType {
+  EASY
+  LONG
+  TEMPO
+  INTERVAL
+}
+
+model User {
+  id          String   @id @default(uuid())
+  clerkUserId String   @unique
+  email       String   @unique
+  name        String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  plans       Plan[] // усі плани цього користувача | 1 план - це 1 тиждень і вньому є якась кількість workouts
+  quiz        Quiz? // quiz користувача перед створенням плана
+}
+
+model Plan {
+  id String @id @default(uuid())
+
+  userId    String
+  weekStart DateTime
+  user      User      @relation(fields: [userId], references: [clerkUserId])
+  workouts  Workout[] // список тренувань
+  createdAt DateTime  @default(now())
+}
+
+model Workout {
+  id          String      @id @default(uuid())
+  planId      String
+  day         String
+  type        WorkoutType
+  pace        String
+  description String
+  completed   Boolean
+  plan        Plan        @relation(fields: [planId], references: [id])
+}
+
+model Quiz {
+  id     String @id @default(uuid())
+  userId String @unique
+  data   Json
+  user   User   @relation(fields: [userId], references: [clerkUserId])
+}
