@@ -4,6 +4,7 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import Header from "@/components/header/Header";
 import { checkUser } from "@/lib/checkUser";
+import { QuizProvider } from "@/context/QuizContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,16 +30,18 @@ export default async function RootLayout({
   await checkUser();
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <div className="container mx-auto">
-            <Header />
-            {children}
-          </div>
-        </body>
-      </html>
+      <QuizProvider>
+        <html lang="en">
+          <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          >
+            <div className="container mx-auto">
+              <Header />
+              {children}
+            </div>
+          </body>
+        </html>
+      </QuizProvider>
     </ClerkProvider>
   );
 }
