@@ -1,45 +1,63 @@
 "use client"
 import { createQuiz } from "@/lib/actions/createQuiz";
-import { quizQuestions } from "@/quiz-data/quiz.data";
+import { goalBasedQuestions, mainGoalQuestion } from "@/quiz-data/quiz.data";
 import { QuizAnswersType } from "@/types/QuizAnswersType";
+import { QuizQuestionType } from "@/types/QuizQuestionType";
 import { useRouter } from "next/navigation";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 
 type QuizContextType = {
-    quiz: typeof quizQuestions[number];
-    chooseOption: string;
+    questionList: QuizQuestionType[];
+    currentQuestionData: QuizQuestionType;
+    selectedOption: string;
     currentQuestion: number,
-    setChooseOption: (value: string) => void;
+    setSelectedOption: (value: string) => void;
     next: () => void;
     prev: () => void;
+    lastQuestion: boolean;
 };
 
 const QuizContext = createContext<QuizContextType | undefined>(undefined);
 
-export const QuizProvider = ({ children }) => {
+export const QuizProvider = ({ children }: { children: ReactNode }) => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
-    const [chooseOption, setChooseOption] = useState("");
-    const [saveAsnwers, setSaveAnswers] = useState<QuizAnswersType>({});
-    const lastQuestion = quizQuestions.length - 1 === currentQuestion;
-    const quiz = quizQuestions[currentQuestion];
+    const [selectedOption, setSelectedOption] = useState("");
+    const [questionList, setQuestionList] = useState([mainGoalQuestion]);
+    const [answers, setAnswers] = useState<Partial<QuizAnswersType>>({});
     const router = useRouter();
+    const currentQuestionData = questionList[currentQuestion];
+
+    const lastQuestion = questionList?.length - 1 === currentQuestion;
+
 
     const handleCreateQuiz = async (answers: QuizAnswersType) => {
         await createQuiz(answers);
     }
 
     const next = () => {
-        const updatedAnswers = { ...saveAsnwers, [quiz.key]: chooseOption };
+        if (currentQuestionData.key === "mainGoal") {
+            const plan = goalBasedQuestions[selectedOption];
+            if (!plan) return;
+            console.log([...plan]);
+
+            setQuestionList([...plan]);
+            setAnswers({ mainGoal: selectedOption });
+            setSelectedOption('');
+
+            return;
+        }
+
 
         if (lastQuestion) {
-            handleCreateQuiz(updatedAnswers);
+            const updatedAnswers = { ...answers, [currentQuestionData.key]: selectedOption };
+            handleCreateQuiz(updatedAnswers as QuizAnswersType);
             router.push('/plan');
         } else {
-            setCurrentQuestion(prev => prev + 1);
-            setSaveAnswers((prev) => {
-                return { ...prev, [quiz.key]: chooseOption }
+            setCurrentQuestion((prev) => prev + 1);
+            setAnswers((prev) => {
+                return { ...prev, [currentQuestionData.key]: selectedOption }
             });
-            setChooseOption('');
+            setSelectedOption('');
         }
     }
 
@@ -49,7 +67,7 @@ export const QuizProvider = ({ children }) => {
 
 
 
-    return <QuizContext.Provider value={{ setChooseOption, next, prev, quiz, chooseOption, currentQuestion }}>{children}</QuizContext.Provider>
+    return <QuizContext.Provider value={{ setSelectedOption, next, prev, currentQuestionData, selectedOption, currentQuestion, questionList, lastQuestion }}>{children}</QuizContext.Provider>
 }
 
 
