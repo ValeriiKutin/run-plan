@@ -5,7 +5,7 @@ import { mainGoalQuestion } from '@/quiz-data/quiz.data';
 import { useUser } from '@clerk/nextjs';
 
 const Quiz = () => {
-    const { currentQuestionData, setSelectedOption, selectedOption, next, prev, currentQuestion, lastQuestion } = useQuiz();
+    const { currentQuestionData, setSelectedOption, selectedOption, next, prev, currentQuestionIndex, lastQuestion } = useQuiz();
     // const lastQuestion = quizQuestions.length - 1 === currentQuestion;
     const { user, isLoaded } = useUser();
 
@@ -43,7 +43,7 @@ const Quiz = () => {
                 <button
                     className='px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
                     onClick={prev}
-                    disabled={currentQuestion === 0}
+                    disabled={currentQuestionIndex === 0}
                 >
                     Назад
                 </button>
